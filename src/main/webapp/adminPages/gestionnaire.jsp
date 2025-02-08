@@ -34,7 +34,7 @@
   <a class="navbar-brand" href="#">
     <img src="${basePath}/images/logo.png" alt="Logo" class="logo">
   </a>
-  <a href="${basePath}/generalPages/home.html?nom=<%= gestionnaire.getNom_utilisateur() %>&password=<%= gestionnaire.getMot_de_pass() %>" class="ms-auto me-4">
+  <a href="${basePath}/home.html?nom=<%= gestionnaire.getNom_utilisateur() %>&password=<%= gestionnaire.getMot_de_pass() %>" class="ms-auto me-4">
 		<img src="${basePath}/images/homeIcon.png" class="home-icon"/>
   </a> 
 </nav>
@@ -115,7 +115,7 @@
          }
          function deconnect(){ 
         	 localStorage.removeItem('type');
-        	 window.location.href = '${basePath}/generalPages/home.html';
+        	 window.location.href = '${basePath}home.html';
  
          } 
          function changeActive(link) {

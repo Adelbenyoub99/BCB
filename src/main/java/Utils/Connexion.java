@@ -5,7 +5,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class Connexion {
-    public Connection ConnectBdd() {
+    public static Connection ConnectBdd() {
         try {
             Class.forName("com.mysql.jdbc.Driver");
             System.out.println("Driver loaded");

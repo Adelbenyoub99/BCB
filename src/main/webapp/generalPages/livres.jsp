@@ -15,7 +15,7 @@
             <div class="d-flex align-items-center justify-content-between" style="width: 90%; border-bottom: 2px solid blue; background-color: #fff;">
                 <h2 class="home-hdr" style="margin: 0px;">Liste des Livres : </h2>
                 <a href="search.html">
-                    <h6>retour</h6>
+                    <h6>Retour</h6>
                 </a>
             </div>
         </div>

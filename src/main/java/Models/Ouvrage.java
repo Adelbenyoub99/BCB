@@ -10,39 +10,33 @@ import java.util.List;
 import Utils.Connexion;
 
 public class Ouvrage {
-	 private int id_ouvrage;
+
 	    private String titre;
 	    private String auteur;
 	    private String description;
 	    private int annee;
-	    private int disponible;
+	    private int disponible = 1; // Par défaut, disponible
 	    private String type;
-	    private String faculte;
-	    private String promoteur;
-	    private String isbn;
-	    private double prix;
+	    private String faculte = ""; // Champ facultatif
+	    private String promoteur = ""; // Champ facultatif
+	    private String isbn = ""; // Champ facultatif
+	    private double prix = 0.0; // Champ facultatif
 		public Ouvrage() {
 		}
-		public Ouvrage(int id_ouvrage, String titre, String auteur, String description, int annee, int disponible,
-				String type, String faculte, String promoteur, String isbn, double prix) {
-			this.id_ouvrage = id_ouvrage;
-			this.titre = titre;
-			this.auteur = auteur;
-			this.description = description;
-			this.annee = annee;
-			this.disponible = disponible;
-			this.type = type;
-			this.faculte = faculte;
-			this.promoteur = promoteur;
-			this.isbn = isbn;
-			this.prix = prix;
+		public Ouvrage(String titre, String auteur, String description, int annee, String type,
+                String faculte, String promoteur, String isbn, double prix) {
+
+	        this.titre = titre;
+	        this.auteur = auteur;
+	        this.description = description;
+	        this.annee = annee;
+	        this.type = type;
+	        this.faculte = faculte != null ? faculte : "";
+	        this.promoteur = promoteur != null ? promoteur : "";
+	        this.isbn = isbn != null ? isbn : "";
+	        this.prix = prix;
 		}
-		public int getId_ouvrage() {
-			return id_ouvrage;
-		}
-		public void setId_ouvrage(int id_ouvrage) {
-			this.id_ouvrage = id_ouvrage;
-		}
+
 		public String getTitre() {
 			return titre;
 		}
@@ -103,10 +97,18 @@ public class Ouvrage {
 		public void setPrix(double prix) {
 			this.prix = prix;
 		}
+
+		
+		
+		
+		
+		
+		
+		
 		/////////////////////////affichage d'un ouvrage ///////////////////
 		private static Ouvrage mapResultSetToOuvrage(ResultSet resultSet) throws SQLException {
 		    Ouvrage ouvrage = new Ouvrage();
-		    ouvrage.setId_ouvrage(resultSet.getInt("id_ouvrage"));
+
 		    ouvrage.setTitre(resultSet.getString("titre"));
 		    ouvrage.setAuteur(resultSet.getString("auteur"));
 		    ouvrage.setDescription(resultSet.getString("description"));
@@ -186,70 +188,52 @@ public class Ouvrage {
 	        return null;   
 	        
 	    }   
-
-	    ///////////////////recherche ouvrage par mot cle dans tous les attributs//////////////////////////
+		
+		
+		//////////////////// search ouvrage //////////////////////////
 		public static List<Ouvrage> searchOuvrage(String keyword) {
-			if(keyword != null) {
-				List<Ouvrage> searchResults = new ArrayList<>();
-		    Connexion co = new Connexion();
-		    // Split the input keyword into individual words
-		    String[] keywords = keyword.trim().split("\\s+");
-		    String[] columns = {"id_ouvrage", "titre", "auteur", "description", "annee", "type", "faculte", "promoteur", "isbn"};
-		    String query = "SELECT * FROM `ouvrage` WHERE ";
-
-		    for (int i = 0; i < keywords.length; i++) {
-		        if (i > 0) {
-		            query += " OR ";
-		        }
-		        query += "(";
-		        for (int j = 0; j < columns.length; j++) {
-		            if (j > 0) {
-		                query += " OR ";
-		            }
-		            query += columns[j] + " LIKE ?";
-		        }
-		        query += ")";
+		    if (keyword == null || keyword.trim().isEmpty()) {
+		        return null;
 		    }
 
-		    try (Connection conn = co.ConnectBdd()) {
-		        if (conn != null) {
-		            System.out.println("Connection successful!");
-		            try (PreparedStatement preparedStatement = conn.prepareStatement(query)) {
-		                int parameterIndex = 1; // Initialize parameter index outside the loop
+		    List<Ouvrage> searchResults = new ArrayList<>();
+		    String[] keywords = keyword.trim().split("\\s+");
+		    String[] columns = {"titre", "auteur", "description", "annee", "type", "faculte", "promoteur", "isbn"};
+		    
+		    // Construire la requête de recherche dynamique
+		    StringBuilder queryBuilder = new StringBuilder("SELECT * FROM `ouvrage` WHERE ");
+		    for (int i = 0; i < keywords.length; i++) {
+		        if (i > 0) queryBuilder.append(" OR ");
+		        queryBuilder.append("(");
+		        for (int j = 0; j < columns.length; j++) {
+		            if (j > 0) queryBuilder.append(" OR ");
+		            queryBuilder.append(columns[j]).append(" LIKE ?");
+		        }
+		        queryBuilder.append(")");
+		    }
 
-		                for (String keywordPart : keywords) {
-		                    for (int j = 0; j < columns.length; j++) {
-		                        preparedStatement.setString(parameterIndex, "%" + keywordPart + "%");
-		                        parameterIndex++; // Increment parameter index only once per iteration
-		                    }
-		                }
-
-		                try (ResultSet resultSet = preparedStatement.executeQuery()) {
-		                    while (resultSet.next()) {
-		                        // Use the mapper function to create Ouvrage objects
-		                        Ouvrage ouvrage = mapResultSetToOuvrage(resultSet);
-		                        searchResults.add(ouvrage);
-		                    }
-		                } catch (SQLException e) {
-		                    e.printStackTrace();
-		                }
-
-		                return searchResults;
+		    try (Connection conn = Connexion.ConnectBdd();
+		         PreparedStatement preparedStatement = conn.prepareStatement(queryBuilder.toString())) {
+		        int parameterIndex = 1;
+		        for (String keywordPart : keywords) {
+		            for (int j = 0; j < columns.length; j++) {
+		                preparedStatement.setString(parameterIndex++, "%" + keywordPart + "%");
 		            }
+		        }
 
-		        } else {
-		            System.out.println("Connection is null. Check your configuration.");
+		        try (ResultSet resultSet = preparedStatement.executeQuery()) {
+		            while (resultSet.next()) {
+		                Ouvrage ouvrage = mapResultSetToOuvrage(resultSet);
+		                searchResults.add(ouvrage);
+		            }
 		        }
 		    } catch (SQLException e) {
 		        e.printStackTrace();
 		    }
 
-		    return null;
-			}else {
-				return null;
-			}
-		    
+		    return searchResults;
 		}
+
 
 	    ///////////////////////// Affichage de tous les ouvrages ///////////////////////
 	    public static List<Ouvrage> getAllOuvrages() {
